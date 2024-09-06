@@ -1,9 +1,16 @@
+import itertools
 from ..common.types import *
 from ..common import csh
 from ..common.cfgbuilder import ControlFlowGraph, Instruction
 
 
 class CodeGen:
+    """Class for generating code from an expression tree
+
+    Raises:
+        NotImplementedError: _description_
+    """
+    
     cfg = ControlFlowGraph()
     procedures: dict[str, list[csh.CSH_Command]]
     main: list[csh.CSH_Command]
@@ -15,21 +22,50 @@ class CodeGen:
         self.main = []
         self.procedures = {}
     
-    def _next_proc_id(self):
+    def _next_proc_id(self) -> str:
+        """Increments the procedure counter and returns the next procedure id. This is used to ensure unique procedure names.
+
+        Returns:
+            string: The next procedure id
+        """
         self.procs += 1
         return f"proc${self.procs}"
 
-    def _next_param_id(self, type_: type):
+    def _next_param_id(self, type_: type) -> str:
+        """Increments the parameter counter for the given type and returns the next parameter id. This is used to ensure unique parameter identifiers.
+
+        Args:
+            type_ (type): The type of the parameter. Makes it easier to distinguish between different types of parameters, as the general arrays for those are separate.
+
+        Returns:
+            string: The next parameter id
+        """
         if type_ not in self.params:
             self.params[type_] = 0
         
         self.params[type_] += 1
         return f"param${type_.type_name}${self.params[type_]}"
     
-    def _next_param(self, type_: type):
+    def _next_param(self, type_: type) -> csh.ParamGeneralRegister:
+        """Increment the parameter counter for the given type and returns a new parameter object.
+
+        Args:
+            type_ (type): Given type of the parameter
+
+        Returns:
+            csh.ParamGeneralRegister: General (placeholder) parameter object
+        """
         return csh.ParamGeneralRegister(type_, self._next_param_id(type_))
     
-    def _sub_proc(self, exps: list[Expression]):
+    def _sub_proc(self, exps: list[Expression]) -> str:
+        """Helper function to generate a sub-procedure from a list of expressions
+
+        Args:
+            exps (list[Expression]): List of expressions to be converted to a sub-procedure
+
+        Returns:
+            str: Proc slot id of the generated procedure
+        """
         body = []
         for x in exps:
             self._code_gen(x, body)
@@ -40,6 +76,21 @@ class CodeGen:
         return id
 
     def _code_gen(self, exp: Expression, procedure: list[csh.CSH_Command]):
+        """Recursive function to generate code from an expression tree.
+        Instructions are added to the given procedure list, and the control flow graph is built accordingly, keeping track of how params are used by instructions. 
+        
+        The function builds on a match statement to pattern match the given expression. This must be updated as new expression types are added.
+
+        Args:
+            exp (Expression): _description_
+            procedure (list[csh.CSH_Command]): _description_
+
+        Raises:
+            NotImplementedError: _description_
+
+        Returns:
+            None
+        """
         match exp:
             case SeqExp():
                 for x in exp.exps:
@@ -94,6 +145,7 @@ class CodeGen:
                 ]
 
                 self.cfg.add_instruction(Instruction(sets={counter}, uses={counter}))
+                self.cfg.add_instruction(Instruction(uses={counter, limit}))
                 self.cfg.block_end()
                 cfgtail.successors.add(cfghead)
                 cfghead.predecessors.add(cfgtail)
@@ -156,7 +208,16 @@ class CodeGen:
                 raise NotImplementedError
             
     
-    def code_gen(self, exp: Expression):
+    def code_gen(self, exp: Expression) -> list[str]:
+        """Main function to generate code from an expression tree. This function is called to start the code generation process and the required sub processes.
+
+        Args:
+            exp (Expression): The main expression tree to generate code from
+            
+        Returns:
+            list[str]: The generated code in the form of a list of strings
+        """
+        
         main_prefix = [
             csh.ProcNew(),
         ]
@@ -182,3 +243,39 @@ class CodeGen:
         print("Main:")
         for x in self.main:
             print(f"\t{x}")
+        
+        
+        
+        # Register allocation:
+        color_maps = self.cfg.calc_liveness()
+        
+        param_map = dict()
+        for ty, color_map in color_maps.items():
+            for param, i in color_map.items():
+                ref = csh.ParamRef('__reg_'+ty, i)      # !! TODO: Update with actual register naming
+                param_map[param] = ref
+        
+        ## Use itertools to iterate over all commands in main and procedures as if a single list
+        for cmd in itertools.chain(self.main, itertools.chain.from_iterable(self.procedures.values())):
+            print(cmd)
+            cmd.update_params(param_map)
+        
+        
+        print("POST COLORING:")
+        
+        print("Procedures:")
+        for k,v in self.procedures.items():
+            print(k)
+            for x in v:
+                print(f"\t{x}")
+        
+        print("Main:")
+        for x in self.main:
+            print(f"\t{x}")
+        
+        
+        # TODO: Slot allocation
+        
+        # TODO: From python objects to lines of code 
+        
+        

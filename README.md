@@ -14,6 +14,26 @@ pip install -r requirements.txt
 pip install --editable .
 ```
 
+### Project overview
+
+proc_comp is developed as a Python package. This allows splitting it into multiple modules (files).
+
+
+Below, the steps done by the compiler is described. Cleanup still needed and function names might not be correct, but this is the main idea:
+
+```
+---From frontend--> General language/JSON
+---parser--> intermediary representation/abstract syntax 
+---codegen.procgen--> CSH command representation split into proc functions. A control flow graph is built alongside
+---cfg.calc_liveness--> Analyse the control flow graph for parameter liveness. Calculate a colored graph for reuse of general purpose parameters.
+---codegen.assign_params--> Replace placeholder params with general purpose params found with coloring
+
+TODO: 
+---codegen.assign_slots--> Analyse which slots are available and update the slot names correspondingly.
+---codegen.codegen--> Generate actual CSH script. Use a csh_str() method from common/csh.py (not implemented yet)
+```
+
+
 ## Usage
 ```
 usage: proc_comp.py [-h] [--output OUTPUT] [--verbose] [--log-file LOG_FILE] input

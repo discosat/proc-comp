@@ -1,13 +1,25 @@
 from ..common.types import *
 
 
-def parse(obj):
+
+def parse(obj: dict) -> Expression:
+    """Parse an object describing a satellite procedure. Is recursive.
+
+    Args:
+        obj (dict): A dictionary describing a satellite procedure. 
+
+    Raises:
+        ValueError: The given expression is not recognized
+
+    Returns:
+        Expression: An abstract representation of the procedure expression
+    """
     #print(obj)
     match obj['name']:
         case 'commands':
             return SeqExp([parse(x) for x in obj['body']])
         case 'if':
-            return IfElseExp(parse(obj['cond']), parse(obj['then']), NoopExp)
+            return IfElseExp(parse(obj['cond']), parse(obj['then']), NoopExp())
         case 'ifelse':
             return IfElseExp(parse(obj['cond']), parse(obj['then']), parse(obj['else']))
         case 'wait-sec':
