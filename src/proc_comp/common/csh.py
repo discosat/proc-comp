@@ -10,6 +10,12 @@ class CSH_Command:
 
     def __node_str__(self):
         return f" [{self.node}]" if self.node else ""
+    
+    def update_params(self, param_map: dict):
+        pass
+    
+    def update_slots(self, slot_map: dict):
+        pass
 
 class ParamRef:
     name: str
@@ -125,6 +131,13 @@ class ProcBlock(CSH_Command):
     
     def __str__(self):
         return super().__str__() + f" {self.a} {self.op} {self.b}" + self.__node_str__()
+    
+    def update_params(self, param_map: dict):
+        for k,v in param_map.items():
+            if k == self.a:
+                self.a = v
+            if k == self.b:
+                self.b = v
 
 class ProcIfElse(CSH_Command):
     __match_args__ = ('a', 'op', 'b', 'node')
@@ -136,6 +149,13 @@ class ProcIfElse(CSH_Command):
     
     def __str__(self):
         return super().__str__() + f" {self.a} {self.op} {self.b}" + self.__node_str__()
+    
+    def update_params(self, param_map: dict):
+        for k,v in param_map.items():
+            if k == self.a:
+                self.a = v
+            if k == self.b:
+                self.b = v
 
 class ProcNoop(CSH_Command):
     pass
@@ -149,6 +169,11 @@ class ProcSet(CSH_Command):
     
     def __str__(self):
         return super().__str__() + f" {self.param} {self.value}" + self.__node_str__()
+    
+    def update_params(self, param_map: dict):
+        for k,v in param_map.items():
+            if k == self.param:
+                self.param = v
 
 class ProcUnop(CSH_Command):
     __match_args__ = ('param', 'op', 'result', 'node')
@@ -160,6 +185,13 @@ class ProcUnop(CSH_Command):
     
     def __str__(self):
         return super().__str__() + f" {self.param} {self.op} {self.result}" + self.__node_str__()
+    
+    def update_params(self, param_map: dict):
+        for k,v in param_map.items():
+            if k == self.param:
+                self.param = v
+            if k == self.result:
+                self.result = v
 
 class ProcBinop(CSH_Command):
     __match_args__ = ('a', 'op', 'b', 'result', 'node')
@@ -172,6 +204,15 @@ class ProcBinop(CSH_Command):
     
     def __str__(self):
         return super().__str__() + f" {self.a} {self.op} {self.b} {self.result}" + self.__node_str__()
+    
+    def update_params(self, param_map: dict):
+        for k,v in param_map.items():
+            if k == self.a:
+                self.a = v
+            if k == self.b:
+                self.b = v
+            if k == self.result:
+                self.result = v
 
 class ProcCall(CSH_Command):
     __match_args__ = ('slot', 'node')
@@ -181,3 +222,7 @@ class ProcCall(CSH_Command):
     
     def __str__(self):
         return super().__str__() + f" {self.slot}" + self.__node_str__()
+    
+    def update_slots(self, slot_map: dict):
+        if self.slot in slot_map:
+            self.slot = slot_map[self.slot]
