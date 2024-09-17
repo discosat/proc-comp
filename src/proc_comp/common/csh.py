@@ -17,6 +17,9 @@ class CSH_Command:
     def update_slots(self, slot_map: dict):
         pass
 
+    def command_string(self):
+        return f"# undefined {type(self).__name__}"
+
 class ParamRef:
     name: str
     array_idx: int|None
@@ -47,7 +50,8 @@ class ParamGeneralRegister(ParamRef):
 # Proc Procedure Management Commands
 
 class ProcNew(CSH_Command):
-    pass
+    def command_string(self):
+        return f"proc new"
 
 
 class ProcDel(CSH_Command):
@@ -62,6 +66,9 @@ class ProcDel(CSH_Command):
         if self.slot in slot_map:
             self.slot = slot_map[self.slot]
 
+    def command_string(self):
+        return f"proc del {self.slot}" + (f" {self.node}" if self.node else "")
+
 class ProcPull(CSH_Command):
     def __init__(self, slot, node=0):
         self.slot = slot
@@ -73,6 +80,9 @@ class ProcPull(CSH_Command):
     def update_slots(self, slot_map: dict):
         if self.slot in slot_map:
             self.slot = slot_map[self.slot]
+
+    def command_string(self):
+        return f"proc pull {self.slot}" + (f" {self.node}" if self.node else "")
 
 class ProcPush(CSH_Command):
     def __init__(self, slot, node=0):
@@ -86,6 +96,9 @@ class ProcPush(CSH_Command):
         if self.slot in slot_map:
             self.slot = slot_map[self.slot]
 
+    def command_string(self):
+        return f"proc push {self.slot}" + (f" {self.node}" if self.node else "")
+
 class ProcRun(CSH_Command):
     def __init__(self, slot, node=0):
         self.slot = slot
@@ -98,16 +111,27 @@ class ProcRun(CSH_Command):
         if self.slot in slot_map:
             self.slot = slot_map[self.slot]
 
+    def command_string(self):
+        return f"proc run {self.slot}" + (f" {self.node}" if self.node else "")
+
 ## Mostly for manual control 
 class ProcPop(CSH_Command):
     def __init__(self, instruction_index=None):
         self.idx = instruction_index
 
+    def command_string(self):
+        if self.node == 0:
+            return f"proc pop"
+
 class ProcSize(CSH_Command):
-    pass
+    def __init__(self) -> None:
+        super().__init__()
+        raise NotImplementedError
 
 class ProcList(CSH_Command):
-    pass
+    def __init__(self) -> None:
+        super().__init__()
+        raise NotImplementedError
 
 class ProcSlots(CSH_Command):
     def __init__(self, node=0):
@@ -115,6 +139,9 @@ class ProcSlots(CSH_Command):
     
     def __str__(self):
         return super().__str__() + self.__node_str__()
+
+    def command_string(self):
+        return f"proc run {self.slot}" + (f" {self.node}" if self.node else "")
 
 
 # Proc Control-Flow and Arithmetic Operations
@@ -155,6 +182,9 @@ class ProcBlock(CSH_Command):
             if k == self.b:
                 self.b = v
 
+    def command_string(self):
+        return f"proc block {self.a} {self.op} {self.b}" + (f" {self.node}" if self.node else "")
+
 class ProcIfElse(CSH_Command):
     __match_args__ = ('a', 'op', 'b', 'node')
     def __init__(self, a, op:ComparisonOp , b, node=0):
@@ -173,12 +203,16 @@ class ProcIfElse(CSH_Command):
             if k == self.b:
                 self.b = v
 
+    def command_string(self):
+        return f"proc ifelse {self.a} {self.op} {self.b}" + (f" {self.node}" if self.node else "")
+
 class ProcNoop(CSH_Command):
-    pass
+    def command_string(self):
+        return "proc noop"
 
 class ProcSet(CSH_Command):
     __match_args__ = ('param', 'value', 'node')
-    def __init__(self, param:ParamRef, value, node=0):
+    def __init__(self, param:ParamRef, value:ParamType, node=0):
         self.param = param
         self.value = value
         self.node = node
@@ -190,6 +224,9 @@ class ProcSet(CSH_Command):
         for k,v in param_map.items():
             if k == self.param:
                 self.param = v
+
+    def command_string(self):
+        return f"proc set {self.param} {self.value.value}" + (f" {self.node}" if self.node else "")
 
 class ProcUnop(CSH_Command):
     __match_args__ = ('param', 'op', 'result', 'node')
@@ -208,6 +245,9 @@ class ProcUnop(CSH_Command):
                 self.param = v
             if k == self.result:
                 self.result = v
+
+    def command_string(self):
+        return f"proc unop {self.param} {self.op} {self.result}" + (f" {self.node}" if self.node else "")
 
 class ProcBinop(CSH_Command):
     __match_args__ = ('a', 'op', 'b', 'result', 'node')
@@ -230,6 +270,9 @@ class ProcBinop(CSH_Command):
             if k == self.result:
                 self.result = v
 
+    def command_string(self):
+        return f"proc binop {self.a} {self.op} {self.b} {self.result}" + (f" {self.node}" if self.node else "")
+
 class ProcCall(CSH_Command):
     __match_args__ = ('slot', 'node')
     def __init__(self, slot, node=0):
@@ -242,3 +285,6 @@ class ProcCall(CSH_Command):
     def update_slots(self, slot_map: dict):
         if self.slot in slot_map:
             self.slot = slot_map[self.slot]
+
+    def command_string(self):
+        return f"proc call {self.slot}" + (f" {self.node}" if self.node else "")

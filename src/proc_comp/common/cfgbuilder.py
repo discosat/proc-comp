@@ -262,7 +262,7 @@ class ControlFlowGraph:
                     a: ParamGeneralRegister
                     b: ParamGeneralRegister
                     if a.type_ == b.type_:
-                        typ = a.type_.type_name
+                        typ = a.type_.register_name
                         if not typ in typed_graphs:
                             typed_graphs[typ] = nx.Graph()
                         typed_graphs[typ].add_edge(a, b)

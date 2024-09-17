@@ -2,6 +2,7 @@ import itertools
 from ..common.types import *
 from ..common import csh
 from ..common.cfgbuilder import ControlFlowGraph, Instruction
+from proc_comp.common import types
 
 
 class CodeGen:
@@ -187,14 +188,18 @@ class CodeGen:
                 # Block until current time is greater than the param
                 
                 tmp = self._next_param(UInt32)
+                tmp2 = self._next_param(UInt32)
                 time = csh.ParamRef("time")
                 
                 # Don't add time to the CFG as it is a hardcoded param name
                 procedure.append(csh.ProcUnop(time, IdentLocalOp(), tmp))
                 self.cfg.add_instruction(Instruction(sets={tmp}))
 
-                procedure.append(csh.ProcBinop(tmp, AddOp(), exp.time, tmp))
-                self.cfg.add_instruction(Instruction(sets={tmp},uses={tmp}))
+                procedure.append(csh.ProcSet(tmp2, exp.time))
+                self.cfg.add_instruction(Instruction(sets={tmp2}))
+
+                procedure.append(csh.ProcBinop(tmp, AddOp(), tmp2, tmp))
+                self.cfg.add_instruction(Instruction(sets={tmp},uses={tmp, tmp2}))
 
                 procedure.append(csh.ProcBlock(time, GteOp(), tmp))
                 self.cfg.add_instruction(Instruction(uses={tmp}))
@@ -244,15 +249,20 @@ class CodeGen:
         for x in self.main:
             print(f"\t{x}")
         
-        
+        def all_subclasses(cls):
+            return set(cls.__subclasses__()).union(
+                [s for c in cls.__subclasses__() for s in all_subclasses(c)])
         
         # Register allocation:
         color_maps = self.cfg.calc_liveness()
         
         param_map = dict()
-        for ty, color_map in color_maps.items():
+        for reg, color_map in color_maps.items():
             for param, i in color_map.items():
-                ref = csh.ParamRef('__reg_'+ty, i)      # !! TODO: Update with actual register naming
+                for typ in all_subclasses(types.ParamType):
+                    if typ.register_name == reg and typ.num_registers <= i:
+                        raise Exception("Not enough registers for ", reg, f"({i}/{typ.num_registers})")
+                ref = csh.ParamRef(reg, i)
                 param_map[param] = ref
         
 
@@ -297,4 +307,30 @@ class CodeGen:
         
         # TODO: From python objects to lines of code 
         
+
+
+        REMOTE_NODE = 12
+
+        instruction_list: list[csh.CSH_Command] = []
+
+        def add_proc(proc_id, instructions):
+            instruction_list.append(csh.ProcDel(proc_id, REMOTE_NODE))
+            instruction_list.append(csh.ProcNew())
+            for instr in instructions:
+                instruction_list.append(instr)
+            instruction_list.append(csh.ProcPush(proc_id, REMOTE_NODE))
+
+        add_proc(MAIN_SLOT_ID, self.main)
+        for proc, instructions in self.procedures.items():
+            add_proc(proc, instructions)
+        
+        instruction_list.append(csh.ProcRun(MAIN_SLOT_ID, REMOTE_NODE))
+
+        commands: list[str] = []
+
+        for instruction in instruction_list:
+            commands.append(instruction.command_string())
+
+
+        return commands
         
