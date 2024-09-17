@@ -255,10 +255,30 @@ class CodeGen:
                 ref = csh.ParamRef('__reg_'+ty, i)      # !! TODO: Update with actual register naming
                 param_map[param] = ref
         
+
+        # TODO: Slot allocation
+
+        MAIN_SLOT_ID = 10
+        MIN_SLOT_ID = 11
+        MAX_SLOT_ID = 255
+        AVAIL_SLOT_IDS = MAX_SLOT_ID - MIN_SLOT_ID
+
+        # get all proc slots
+        temp_slots = list(self.procedures.keys()).copy()
+        if len(temp_slots) > AVAIL_SLOT_IDS:
+            raise Exception('Not enough slots. Too many procedures generated')
+        
+        slot_map = dict()
+        for i, k in enumerate(temp_slots):
+            n = i + MIN_SLOT_ID
+            slot_map[k] = n
+            self.procedures[n] = self.procedures.pop(k)
+
         ## Use itertools to iterate over all commands in main and procedures as if a single list
         for cmd in itertools.chain(self.main, itertools.chain.from_iterable(self.procedures.values())):
             print(cmd)
             cmd.update_params(param_map)
+            cmd.update_slots(slot_map)
         
         
         print("POST COLORING:")
@@ -274,7 +294,6 @@ class CodeGen:
             print(f"\t{x}")
         
         
-        # TODO: Slot allocation
         
         # TODO: From python objects to lines of code 
         

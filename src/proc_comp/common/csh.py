@@ -58,6 +58,10 @@ class ProcDel(CSH_Command):
     def __str__(self):
         return super().__str__() + f" {self.slot}" + self.__node_str__()
 
+    def update_slots(self, slot_map: dict):
+        if self.slot in slot_map:
+            self.slot = slot_map[self.slot]
+
 class ProcPull(CSH_Command):
     def __init__(self, slot, node=0):
         self.slot = slot
@@ -65,6 +69,10 @@ class ProcPull(CSH_Command):
     
     def __str__(self):
         return super().__str__() + f" {self.slot}" + self.__node_str__()
+
+    def update_slots(self, slot_map: dict):
+        if self.slot in slot_map:
+            self.slot = slot_map[self.slot]
 
 class ProcPush(CSH_Command):
     def __init__(self, slot, node=0):
@@ -74,6 +82,10 @@ class ProcPush(CSH_Command):
     def __str__(self):
         return super().__str__() + f" {self.slot}" + self.__node_str__()
 
+    def update_slots(self, slot_map: dict):
+        if self.slot in slot_map:
+            self.slot = slot_map[self.slot]
+
 class ProcRun(CSH_Command):
     def __init__(self, slot, node=0):
         self.slot = slot
@@ -81,6 +93,10 @@ class ProcRun(CSH_Command):
     
     def __str__(self):
         return super().__str__() + f" {self.slot}" + self.__node_str__()
+
+    def update_slots(self, slot_map: dict):
+        if self.slot in slot_map:
+            self.slot = slot_map[self.slot]
 
 ## Mostly for manual control 
 class ProcPop(CSH_Command):
