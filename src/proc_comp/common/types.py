@@ -90,6 +90,10 @@ class Double64(ParamType):
     register_name = "_p_double"
     num_registers = 16
 
+class String(ParamType):
+    type_name = "String"
+    register_name = "_p_string"
+    num_registers = 32
 
 class OperandType:
     def __repr__(self):
@@ -301,3 +305,31 @@ class ProcSetExp(Expression):
     
     def __str__(self):
         return f"ProcSetExp({self.name}, {self.value})"
+
+class ProcCaptureImages(Expression):
+    """
+    Args:
+        cameraID (String): The model of the camera to capture with.
+        cameraType (String): The camera type to capture with.
+        exposure (int): Exposure in microseconds.
+        iso (float): ISO or gain.
+        numOfImages (int): Number of images to capture.
+        interval (int): Delay between images in microseconds (excluding exposure).
+    """
+    cameraID: String
+    cameraType: String
+    exposure: Int64
+    iso: Double64
+    numOfImages: Int64
+    interval: Int64
+
+    def __init__(self, cameraID: String, cameraType: String, exposure: Int64, iso: Double64, numOfImages: Int64, interval: Int64):
+        self.cameraID = cameraID
+        self.cameraType = cameraType
+        self.exposure = exposure
+        self.iso = iso
+        self.numOfImages = numOfImages
+        self.interval = interval
+
+    def __str__(self):
+        return f"ProcCaptureImages({self.cameraID}, {self.cameraType}, {self.exposure}, {self.iso}, {self.numOfImages}, {self.interval})"

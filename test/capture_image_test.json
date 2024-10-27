@@ -1,0 +1,14 @@
+{
+    "name": "commands",
+    "body": [
+        {
+            "name": "capture_image",
+            "cameraType": "VMB",
+            "cameraID": "1800 U-2040c",
+            "numOfImages": 10,
+            "exposure": 55000,
+            "iso": 0,
+            "interval": 55000 
+        }
+    ]
+}

@@ -208,7 +208,18 @@ class CodeGen:
             case ProcSetExp():
                 procedure.append(csh.ProcSet(csh.ParamRef(exp.name), exp.value))
 
-            
+            case ProcCaptureImages():
+                value = (
+                    f"\"CAMERA_TYPE={exp.cameraType.value};"
+                    f"CAMERA_ID={exp.cameraID.value};"
+                    f"NUM_IMAGES={exp.numOfImages.value};"
+                    f"EXPOSURE={exp.exposure.value};"
+                    f"ISO={exp.iso.value};"
+                    f"INTERVAL={exp.interval.value};\""
+                )
+
+                self._code_gen(ProcSetExp("capture_params", String(value)), procedure)
+
             case _:
                 raise NotImplementedError
             
