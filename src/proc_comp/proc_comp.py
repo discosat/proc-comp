@@ -3,6 +3,9 @@
 import argparse
 import logging
 import logging.config
+import json
+from proc_comp.parser import parser as codeParser
+from proc_comp.codegen import codegen
 
 logger = logging.getLogger(__name__)
 
@@ -29,3 +32,18 @@ if __name__ == "__main__":
 
     logger.debug("Input file: %s", args.input)
     logger.debug("Output file: %s", args.output)
+
+    with open(args.input, 'r') as f:
+        json_input = json.load(f)
+    
+    ast = codeParser.parse(json_input)
+    logger.debug("Ast: %s", ast)
+
+    csh_generator = codegen.CodeGen()
+    csh_script = csh_generator.code_gen(exp=ast)
+    code = '\n'.join(csh_script)
+
+    with open(args.output, 'w') as f:
+        f.write(code)
+
+    logger.info("CSH script written to %s", args.output)

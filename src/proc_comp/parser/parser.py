@@ -31,5 +31,15 @@ def parse(obj: dict) -> Expression:
                 ProcSetExp(f"gpio_mode[{obj['pin']}]", UInt8(1)),
                 ProcSetExp(f"gpio_value[{obj['pin']}]", UInt8(obj['value']))
             ])
+        case 'capture_image':
+            return ProcCaptureImages(
+                    String(obj['cameraID']),
+                    String(obj['cameraType']),
+                    Int64(obj['exposure']),
+                    Double64(obj['iso']),
+                    Int64(obj['numOfImages']),
+                    Int64(obj['interval'])
+                )
+
         case _:
             raise ValueError(f"Unknown expression: {obj['name']}")
