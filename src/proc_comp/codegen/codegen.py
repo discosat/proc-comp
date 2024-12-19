@@ -250,15 +250,15 @@ class CodeGen:
 
         self.cfg.block_end()
         
-        print("Procedures:")
-        for k,v in self.procedures.items():
-            print(k)
-            for x in v:
-                print(f"\t{x}")
-        
-        print("Main:")
-        for x in self.main:
-            print(f"\t{x}")
+        #print("Procedures:")                 TODO: make toggleable
+        #for k,v in self.procedures.items():
+        #    print(k)
+        #    for x in v:
+        #        print(f"\t{x}")
+        #
+        #print("Main:")
+        #for x in self.main:
+        #    print(f"\t{x}")
         
         def all_subclasses(cls):
             return set(cls.__subclasses__()).union(
@@ -297,22 +297,22 @@ class CodeGen:
 
         ## Use itertools to iterate over all commands in main and procedures as if a single list
         for cmd in itertools.chain(self.main, itertools.chain.from_iterable(self.procedures.values())):
-            print(cmd)
+            # print(cmd) TODO: make toggleable
             cmd.update_params(param_map)
             cmd.update_slots(slot_map)
         
         
-        print("POST COLORING:")
+        #print("POST COLORING:")         TODO: make toggleable
         
-        print("Procedures:")
-        for k,v in self.procedures.items():
-            print(k)
-            for x in v:
-                print(f"\t{x}")
-        
-        print("Main:")
-        for x in self.main:
-            print(f"\t{x}")
+        #print("Procedures:")
+        #for k,v in self.procedures.items():
+        #    print(k)
+        #    for x in v:
+        #        print(f"\t{x}")
+        #
+        #print("Main:")
+        #for x in self.main:
+        #    print(f"\t{x}")
         
         
         
