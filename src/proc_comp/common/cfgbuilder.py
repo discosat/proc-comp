@@ -163,13 +163,13 @@ class ControlFlowGraph:
         '''
         i = 0
         while True:
-            print("Calculating liveness...", i)
+            #print("Calculating liveness...", i) # TODO: Make toggleable
             i += 1
             changed = False
             for block in reversed(self.blocks):
-                print(f"Calculating liveness for block {block.name}")
-                print(f"Old live_in: {block.live_in}")
-                print(f"Old live_out: {block.live_out}")
+            #    print(f"Calculating liveness for block {block.name}")
+            #    print(f"Old live_in: {block.live_in}")
+            #    print(f"Old live_out: {block.live_out}")
 
                 old_live_out = block.live_out.copy()
                 old_live_in = block.live_in.copy()
@@ -179,12 +179,12 @@ class ControlFlowGraph:
 
                 block.live_in = block.live_out.copy()
                 for instruction in reversed(block.instructions):
-                    print(instruction)
+             #       print(instruction)
                     block.live_in -= instruction.sets
                     block.live_in |= instruction.uses
 
-                print(f"New live_in: {block.live_in}")
-                print(f"New live_out: {block.live_out}\n")
+              #  print(f"New live_in: {block.live_in}")
+              #  print(f"New live_out: {block.live_out}\n")
 
                 if block.live_out != old_live_out or block.live_in != old_live_in:
                     changed = True
@@ -276,17 +276,17 @@ class ControlFlowGraph:
 
         return colored
 
-    def pprint(self):
-        """Pretty print the control flow graph
-        """
-        print('Control Flow Graph')
-        for block in self.blocks:
-            print(f"Block: {block.name}")
-            print(f"\tInstructions:")
-            for i in block.instructions:
-                print(f"\t\t{i}")
-            print(f"\tPredecessors: {[b.name for b in block.predecessors]}")
-            print(f"\tSuccessors: {[b.name for b in block.successors]}")
-            print(f"\tLive In: {block.live_in}")
-            print(f"\tLive Out: {block.live_out}")
-            print()
+    #def pprint(self):
+    #    """Pretty print the control flow graph
+    #    """
+    #    print('Control Flow Graph')
+    #    for block in self.blocks:
+    #        print(f"Block: {block.name}")
+    #        print(f"\tInstructions:")
+    #        for i in block.instructions:
+    #            print(f"\t\t{i}")
+    #        print(f"\tPredecessors: {[b.name for b in block.predecessors]}")
+    #        print(f"\tSuccessors: {[b.name for b in block.successors]}")
+    #        print(f"\tLive In: {block.live_in}")
+    #        print(f"\tLive Out: {block.live_out}")
+    #        print()
