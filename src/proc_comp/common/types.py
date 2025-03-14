@@ -333,3 +333,20 @@ class ProcCaptureImages(Expression):
 
     def __str__(self):
         return f"ProcCaptureImages({self.cameraID}, {self.cameraType}, {self.exposure}, {self.iso}, {self.numOfImages}, {self.interval})"
+
+
+class RawCSH(Expression):
+    commands: list[str]
+    def __init__(self, commands: list[str]):
+        self.commands = commands
+    
+    def __str__(self):
+        return f'RawCSH([{"; ".join(self.commands)}])'
+    
+    def __pprint__(self, depth=0):
+        lines = [(depth, "RawCSH([")]
+        for x in self.commands:
+            lines.append((depth+1, x))
+        lines.append((depth, "])"))
+
+        return lines

@@ -277,3 +277,15 @@ class ProcCall(CSH_Command):
 
     def command_string(self):
         return f"proc call {self.slot}" + (f" {self.node}" if self.node else "")
+
+
+class RawCommand(CSH_Command):
+    command: str
+    def __init__(self, cmd):
+        self.command = cmd
+
+    def __str__(self):
+        return super().__str__() + f' {self.command}'
+    
+    def command_string(self):
+        return self.command

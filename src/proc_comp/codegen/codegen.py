@@ -207,6 +207,10 @@ class CodeGen:
 
                 self._code_gen(ProcSetExp("capture_params", String(value)), procedure)
 
+            case RawCSH():
+                for cmd in exp.commands:
+                    procedure.append(csh.RawCommand(cmd))
+
             case _:
                 raise NotImplementedError
             

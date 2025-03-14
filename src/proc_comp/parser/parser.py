@@ -40,6 +40,8 @@ def parse(obj: dict) -> Expression:
                     Int64(obj['numOfImages']),
                     Int64(obj['interval'])
                 )
+        case 'raw':
+            return RawCSH(obj.get('commands', []))
 
         case _:
             raise ValueError(f"Unknown expression: {obj['name']}")
