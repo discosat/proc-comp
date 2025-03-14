@@ -1,7 +1,7 @@
 import networkx as nx
 import itertools
 
-from proc_comp.common.csh import ParamGeneralRegister
+from proc_comp.common.csh_param import ParamGeneralRegister
 
 
 class Instruction:
@@ -19,8 +19,8 @@ class Instruction:
             sets = set()
         if not uses:
             uses = set()
-        self.sets = sets
-        self.uses = uses
+        self.sets = set(filter(lambda x: isinstance(x, ParamGeneralRegister), sets))
+        self.uses = set(filter(lambda x: isinstance(x, ParamGeneralRegister), uses))
         self.live_in = set()
         self.live_out = set()
 
@@ -129,6 +129,21 @@ class ControlFlowGraph:
                 "No block to end. Current blocks: " + str(self.blocks))
         self.blocks.append(self.current_block)
         self.current_block = None
+    
+    def block_next(self, name: str, additional_succeeds: Block | list[Block] = None) -> Block:
+        succeeds = [self.current_block]
+
+        match additional_succeeds:
+            case Block():
+                succeeds.append(additional_succeeds)
+            case list():
+                succeeds += additional_succeeds
+            case _:
+                pass
+        
+        self.block_end()
+        return self.block_start(name, succeeds)
+
 
     def add_instruction(self, instruction: Instruction):
         """Add an instruction to the currently open block. A block must be open.

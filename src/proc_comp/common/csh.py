@@ -1,7 +1,10 @@
+from proc_comp.common.cfgbuilder import Instruction
+from .csh_param import *
 from .types import *
 
 
 class CSH_Command:
+
     def __repr__(self):
         return self.__str__()
     
@@ -20,31 +23,12 @@ class CSH_Command:
     def command_string(self):
         return f"# undefined {type(self).__name__}"
 
-class ParamRef:
-    name: str
-    array_idx: int|None
-    
-    def __init__(self, name: str, array_idx: int|None = None):
-        self.name = name
-        self.array_idx = array_idx
-    
-    def __repr__(self):
-        return self.__str__()
-    
-    def __str__(self):
-        return f"{self.name}" + (f"[{self.array_idx}]" if self.array_idx is not None else "")
-
-class ParamGeneralRegister(ParamRef):
-    type_: ParamType
-    def __init__(self, type_: type, name: str):
-        if not issubclass(type_, ParamType):
-            raise ValueError(f"Expected a subclass of ParamType, got {type_}")
-        self.type_ = type_
-        super().__init__(name)
-
-    def __str__(self):
-        return f"({self.type_.__name__}) {self.name}"
-
+    @property
+    def cfg_instruction(self):
+        if hasattr(self, '_cfg_instruction'):
+            return self._cfg_instruction
+        else:
+            return Instruction()
 
 
 # Proc Procedure Management Commands
@@ -171,6 +155,7 @@ class ProcBlock(CSH_Command):
         self.op = op
         self.b = b
         self.node = node
+        self._cfg_instruction = Instruction(uses={a,b})
     
     def __str__(self):
         return super().__str__() + f" {self.a} {self.op} {self.b}" + self.__node_str__()
@@ -192,6 +177,7 @@ class ProcIfElse(CSH_Command):
         self.op = op
         self.b = b
         self.node = node
+        self._cfg_instruction = Instruction(uses={a,b})
     
     def __str__(self):
         return super().__str__() + f" {self.a} {self.op} {self.b}" + self.__node_str__()
@@ -216,6 +202,7 @@ class ProcSet(CSH_Command):
         self.param = param
         self.value = value
         self.node = node
+        self._cfg_instruction = Instruction(sets={param})
     
     def __str__(self):
         return super().__str__() + f" {self.param} {self.value}" + self.__node_str__()
@@ -235,6 +222,7 @@ class ProcUnop(CSH_Command):
         self.op = op
         self.result = result
         self.node = node
+        self._cfg_instruction = Instruction(sets={result},uses={param})
     
     def __str__(self):
         return super().__str__() + f" {self.param} {self.op} {self.result}" + self.__node_str__()
@@ -257,6 +245,7 @@ class ProcBinop(CSH_Command):
         self.b = b
         self.result = result
         self.node = node
+        self._cfg_instruction = Instruction(sets={result},uses={a,b})
     
     def __str__(self):
         return super().__str__() + f" {self.a} {self.op} {self.b} {self.result}" + self.__node_str__()

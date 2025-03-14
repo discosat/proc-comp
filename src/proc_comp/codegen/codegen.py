@@ -1,7 +1,7 @@
 import itertools
 from ..common.types import *
 from ..common import csh
-from ..common.cfgbuilder import ControlFlowGraph, Instruction
+from ..common.cfgbuilder import ControlFlowGraph
 from proc_comp.common import types
 
 
@@ -75,6 +75,14 @@ class CodeGen:
         self.procedures[id] = body
         
         return id
+    
+    def _add_command(self, command: csh.CSH_Command, procedure: list[csh.CSH_Command]):
+        procedure.append(command)
+        self.cfg.add_instruction(command.cfg_instruction)
+    
+    def _add_commands(self, procedure: list[csh.CSH_Command], *commands:csh.CSH_Command):
+        for cmd in commands:
+            self._add_command(cmd, procedure)
 
     def _code_gen(self, exp: Expression, procedure: list[csh.CSH_Command]):
         """Recursive function to generate code from an expression tree.
@@ -106,71 +114,57 @@ class CodeGen:
                 limit = self._next_param(UInt32)
                 loop_id = self._next_proc_id()
 
-
-                procedure.append(csh.ProcCall(loop_id))
-
-                cfgprev = self.cfg.current_block
-                self.cfg.block_end()
-
-                # CFG Head
-                cfghead = self.cfg.block_start("repeat_head", succeeds=cfgprev)
-
-                loop += [
+                # Initialize loop variables before entering the loop. This avoids endlessly looping
+                self._add_commands(procedure,
                     csh.ProcSet(counter, UInt32(0)),
                     csh.ProcSet(limit, exp.count),
-                    csh.ProcCall(proc_body_id), 
-                ]
-                self.cfg.add_instruction(Instruction(sets={counter}))
-                self.cfg.add_instruction(Instruction(sets={limit}))
-                self.cfg.block_end()
+                    csh.ProcCall(loop_id), 
+                )
+
+                # CFG Head
+                cfghead = self.cfg.block_next("repeat_head")
+
+                self._add_commands(loop,
+                    csh.ProcIfElse(counter, LtOp(), limit),
+                        csh.ProcCall(proc_body_id), 
+                        csh.ProcNoop(),
+                )
+                self.procedures[loop_id] = loop
 
                 # CFG Body
-                cfgbody = self.cfg.block_start("repeat_body", succeeds=cfghead)
+                cfgbody = self.cfg.block_next("repeat_body")
 
                 for x in exp.exps:
                     self._code_gen(x, body)
-                
+
+                # CFG Loop tail
+                cfgtail = self.cfg.block_next("repeat_tail")
+
+                self._add_commands(body,
+                    csh.ProcUnop(counter, IncrOp(), counter),
+                    csh.ProcCall(loop_id),
+                )
                 self.procedures[proc_body_id] = body
 
                 self.cfg.block_end()
 
-                
-                # CFG Loop check/tail
-                cfgtail = self.cfg.block_start("repeat_tail", succeeds=cfgbody)
-
-                loop += [
-                    csh.ProcUnop(counter, IncrOp(), counter),
-                    csh.ProcIfElse(counter, LtOp(), limit),
-                        csh.ProcCall(loop_id),
-                        csh.ProcNoop(),
-                ]
-
-                self.cfg.add_instruction(Instruction(sets={counter}, uses={counter}))
-                self.cfg.add_instruction(Instruction(uses={counter, limit}))
-                self.cfg.block_end()
                 cfgtail.successors.add(cfghead)
                 cfghead.predecessors.add(cfgtail)
-
-                self.procedures[loop_id] = loop
                 
-                cfgmerge = self.cfg.block_start("repeat_merge", succeeds=cfgtail)
+                cfgmerge = self.cfg.block_start("repeat_merge", cfghead)
                 
             case IfElseExp():
-                cfgprev = self.cfg.current_block
-                self.cfg.block_end()
-
                 # Head
-                cfghead = self.cfg.block_start("if_head", cfgprev)
+                cfghead = self.cfg.block_next("if_head")
 
-                procedure.append(csh.ProcIfElse(exp.a, exp.op, exp.b))
-                self.cfg.add_instruction(Instruction(uses={exp.a, exp.b}))
+                self._add_command(csh.ProcIfElse(exp.a, exp.op, exp.b), procedure)
                 self.cfg.block_end()
                 
                 def handle_seq(then_or_else, block_name):
                     cfgblock = self.cfg.block_start(f"if_{block_name}", succeeds=cfghead)
                     if isinstance(then_or_else, SeqExp):
                         id = self._sub_proc(then_or_else.exps)
-                        procedure.append(csh.ProcCall(id))
+                        self._add_command(csh.ProcCall(id), procedure)
                     else:
                         self._code_gen(then_or_else, procedure)
                     self.cfg.block_end()
@@ -191,22 +185,15 @@ class CodeGen:
                 tmp2 = self._next_param(UInt32)
                 time = csh.ParamRef("time")
                 
-                # Don't add time to the CFG as it is a hardcoded param name
-                procedure.append(csh.ProcUnop(time, IdentLocalOp(), tmp))
-                self.cfg.add_instruction(Instruction(sets={tmp}))
-
-                procedure.append(csh.ProcSet(tmp2, exp.time))
-                self.cfg.add_instruction(Instruction(sets={tmp2}))
-
-                procedure.append(csh.ProcBinop(tmp, AddOp(), tmp2, tmp))
-                self.cfg.add_instruction(Instruction(sets={tmp},uses={tmp, tmp2}))
-
-                procedure.append(csh.ProcBlock(time, GteOp(), tmp))
-                self.cfg.add_instruction(Instruction(uses={tmp}))
-
+                self._add_commands(procedure,
+                    csh.ProcUnop(time, IdentLocalOp(), tmp),
+                    csh.ProcSet(tmp2, exp.time),
+                    csh.ProcBinop(tmp, AddOp(), tmp2, tmp),
+                    csh.ProcBlock(time, GteOp(), tmp),
+                )
                 
             case ProcSetExp():
-                procedure.append(csh.ProcSet(csh.ParamRef(exp.name), exp.value))
+                self._add_command(csh.ProcSet(csh.ParamRef(exp.name), exp.value), procedure)
 
             case ProcCaptureImages():
                 value = (
