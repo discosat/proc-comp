@@ -5,7 +5,7 @@ from ..common.types import *
 @dataclass
 class ExpAttr:
     name: str
-    type_: str
+    type: str
     default: Any | None = None
     required: bool = True
     attributes: dict = field(default_factory=dict)
@@ -117,7 +117,9 @@ expression_map: dict[str, ExpressionMapItem] = {
 
     # Raspberry Pi test expressions
     'gpio-write': ExpressionMapItem(
-        ['pin', 'value'],
+        [ ExpAttr('pin', 'uint', attributes={'min':0, 'max':31})
+        , ExpAttr('value', 'uint', attributes={'min': 0, 'max': 1})
+        ],
         lambda _, obj: SeqExp([
                 ProcSetExp(f"gpio_mode[{obj['pin']}]", UInt8(1)),
                 ProcSetExp(f"gpio_value[{obj['pin']}]", UInt8(obj['value']))
@@ -149,3 +151,16 @@ def parse(obj: dict) -> Expression:
         raise Exception(f'Unsupported expression block "{name}".')
     
     return expr.expression(parse, obj)
+
+
+def discover():
+    return {
+        k: {
+            'fields': [
+                a.__dict__
+                for a in v.attributes
+            ],
+            'description': v.description
+        }
+        for k,v in expression_map.items()
+    }
