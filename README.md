@@ -40,7 +40,7 @@ To add compiler support for a new type of block, the following modifications sho
   - Define attributes and the constructor as necessary 
   - Define `__str__()` to help debugging the parser output
   - Implement `__pprint__()` if additional data or lines should be printed when pretty printing
-2. Create a new match case in the `parser.py`, that returns an instance of the new expression type
+2. Add an item to the expression map in `parser.py`. Define the expression's attributes and set the expression as a lambda function that takes the parser function and expression block object and returns the Expression.
 3. If the expression uses an undefined CSH command, define it in `csh.py`. If the command uses or sets any (general purpose) parameters, set the `self._cfg_instruction` correspondingly -- see e.g. `ProcUnop` for an example. 
 4. Lastly, create a new match case in `codegen.py`'s `_code_gen()`, and add the corresponding procedure instructions. If branching control flow is introduced, it is important to keep the control flow graph up to date. Most importantly is ensuring it actually branches properly out and that predecessors and successors are correct. While `cfg.block_next` sets the immediate predecessor automatically others still need to be handled manually. This is done in the `if-else` case as an example. 
 

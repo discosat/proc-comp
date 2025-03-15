@@ -279,18 +279,17 @@ class WaitTimeExp(Expression):
 
 class RepeatExp(Expression):
     count: UInt32
-    exps: list[Expression]
-    def __init__(self, count: UInt32, exps: list[Expression]):
+    exp: Expression
+    def __init__(self, count: UInt32, exp: Expression):
         self.count = count
-        self.exps = exps
+        self.exp = exp
     
     def __str__(self):
-        return f"RepeatExp({self.count}, {self.exps})"
+        return f"RepeatExp({self.count}, {self.exp})"
 
     def __pprint__(self, depth=0):
         lines = [(depth, f"RepeatExp({self.count}, [")]
-        for x in self.exps:
-            lines += x.__pprint__(depth+1)
+        self.exp.pprint(depth+1)
         lines.append((depth, "])"))
 
         return lines

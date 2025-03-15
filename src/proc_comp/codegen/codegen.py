@@ -134,8 +134,7 @@ class CodeGen:
                 # CFG Body
                 cfgbody = self.cfg.block_next("repeat_body")
 
-                for x in exp.exps:
-                    self._code_gen(x, body)
+                self._code_gen(exp.exp, body)
 
                 # CFG Loop tail
                 cfgtail = self.cfg.block_next("repeat_tail")
