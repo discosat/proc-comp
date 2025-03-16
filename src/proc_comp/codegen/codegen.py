@@ -17,16 +17,19 @@ class CodeGen:
         NotImplementedError: _description_
     """
     
-    cfg = ControlFlowGraph()
+    cfg: ControlFlowGraph
     procedures: dict[str, list[csh.CSH_Command]]
     main: list[csh.CSH_Command]
     
-    procs: int = 0
-    params: dict[type, int] = {}
+    procs: int
+    params: dict[type, int]
     
     def __init__(self) -> None:
-        self.main = []
-        self.procedures = {}
+        self.main = list()
+        self.procedures = dict()
+        self.procs = 0
+        self.params = dict()
+        self.cfg = ControlFlowGraph()
     
     def _next_proc_id(self) -> str:
         """Increments the procedure counter and returns the next procedure id. This is used to ensure unique procedure names.
