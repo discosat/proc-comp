@@ -178,13 +178,13 @@ class ControlFlowGraph:
         '''
         i = 0
         while True:
-            #print("Calculating liveness...", i) # TODO: Make toggleable
+            # print("Calculating liveness...", i) # TODO: Make toggleable
             i += 1
             changed = False
             for block in reversed(self.blocks):
-            #    print(f"Calculating liveness for block {block.name}")
-            #    print(f"Old live_in: {block.live_in}")
-            #    print(f"Old live_out: {block.live_out}")
+                # print(f"Calculating liveness for block {block.name}")
+                # print(f"Old live_in: {block.live_in}")
+                # print(f"Old live_out: {block.live_out}")
 
                 old_live_out = block.live_out.copy()
                 old_live_in = block.live_in.copy()
@@ -194,12 +194,12 @@ class ControlFlowGraph:
 
                 block.live_in = block.live_out.copy()
                 for instruction in reversed(block.instructions):
-             #       print(instruction)
+                    # print(instruction)
                     block.live_in -= instruction.sets
                     block.live_in |= instruction.uses
 
-              #  print(f"New live_in: {block.live_in}")
-              #  print(f"New live_out: {block.live_out}\n")
+                # print(f"New live_in: {block.live_in}")
+                # print(f"New live_out: {block.live_out}\n")
 
                 if block.live_out != old_live_out or block.live_in != old_live_in:
                     changed = True
@@ -271,6 +271,13 @@ class ControlFlowGraph:
                     itertools.combinations(b.live_in, 2),
                     itertools.combinations(b.live_out, 2)
                 ))
+
+                for a in set(itertools.chain(b.live_in, b.live_out)):
+                    typ = a.type_.register_name
+                    if typ not in typed_graphs:
+                        typed_graphs[typ] = nx.Graph()
+                    if a not in typed_graphs[typ].nodes:
+                        typed_graphs[typ].add_node(a)
                 
                 # Only add edges for parameter pairs of the same type. Maybe an itertools filter could be used here?? IDK about if that is more efficient.
                 for a, b in x:
@@ -278,8 +285,6 @@ class ControlFlowGraph:
                     b: ParamGeneralRegister
                     if a.type_ == b.type_:
                         typ = a.type_.register_name
-                        if not typ in typed_graphs:
-                            typed_graphs[typ] = nx.Graph()
                         typed_graphs[typ].add_edge(a, b)
 
         colored = dict()
