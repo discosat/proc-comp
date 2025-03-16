@@ -16,7 +16,7 @@ class ParamRef:
 
 class ParamGeneralRegister(ParamRef):
     type_: ParamType
-    def __init__(self, type_: type, name: str):
+    def __init__(self, type_: ParamType, name: str):
         if not issubclass(type_, ParamType):
             raise ValueError(f"Expected a subclass of ParamType, got {type_}")
         self.type_ = type_

@@ -262,12 +262,12 @@ class IfElseExp(Expression):
         return f"IfElseExp({self.cond}, {self.then}, {self.else_})"
 
     def __pprint__(self, depth=0):
-        return [
-            (depth, f"IfElseExp({self.cond}"),
-            self.then.__pprint__(depth+1),
-            self.else_.__pprint__(depth+1),
-            (depth, ")")
-        ]
+        lines = [(depth, f"IfElseExp({self.cond}")]
+        lines += self.then.__pprint__(depth+1)
+        lines += self.else_.__pprint__(depth+1)
+        lines.append((depth, ")"))
+        return lines
+
 
 class WaitTimeExp(Expression):
     time: UInt32

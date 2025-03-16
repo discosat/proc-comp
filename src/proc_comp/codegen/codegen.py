@@ -101,6 +101,9 @@ class CodeGen:
             None
         """
         match exp:
+            case NoopExp():
+                self._add_command(csh.ProcNoop(), procedure)
+
             case SeqExp():
                 for x in exp.exps:
                     self._code_gen(x, procedure)
@@ -211,7 +214,7 @@ class CodeGen:
                     procedure.append(csh.RawCommand(cmd))
 
             case _:
-                raise NotImplementedError
+                raise NotImplementedError(exp)
             
     
     def code_gen(self, exp: Expression) -> list[str]:
