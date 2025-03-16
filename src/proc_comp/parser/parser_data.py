@@ -1,7 +1,10 @@
 from dataclasses import dataclass, field
-from typing import Callable, Any
-from ..common.types import *
+from typing import Any, Callable
+
+from ..common.types.expression import *
+from ..common.types.param import *
 from .parser_aux import *
+
 
 @dataclass
 class ExpAttr:

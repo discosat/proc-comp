@@ -1,5 +1,6 @@
-from ..common.types import *
-from ..common.csh_param import *
+from ..common.types.param import *
+from ..common.types.csh_param import *
+from ..common.types.operator import *
 
 
 type_map = {

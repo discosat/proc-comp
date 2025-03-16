@@ -1,7 +1,7 @@
 import networkx as nx
 import itertools
 
-from proc_comp.common.csh_param import ParamGeneralRegister
+from proc_comp.common.types.csh_param import ParamGeneralRegister
 
 
 class Instruction:

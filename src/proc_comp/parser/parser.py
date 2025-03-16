@@ -1,4 +1,4 @@
-from ..common.types import *
+from ..common.types.expression import Expression
 from .parser_data import expression_map
 
 

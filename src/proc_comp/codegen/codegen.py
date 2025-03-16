@@ -1,8 +1,13 @@
 import itertools
-from ..common.types import *
+
+from proc_comp.common import types
+
 from ..common import csh
 from ..common.cfgbuilder import ControlFlowGraph
-from proc_comp.common import types
+from ..common.types.expression import *
+from ..common.types.operator import *
+from ..common.types.param import *
+from ..common.types.csh_param import *
 
 
 class CodeGen:
@@ -263,7 +268,7 @@ class CodeGen:
         param_map = dict()
         for reg, color_map in color_maps.items():
             for param, i in color_map.items():
-                for typ in all_subclasses(types.ParamType):
+                for typ in all_subclasses(ParamType):
                     if typ.register_name == reg and typ.num_registers <= i:
                         raise Exception("Not enough registers for ", reg, f"({i}/{typ.num_registers})")
                 ref = csh.ParamRef(reg, i)

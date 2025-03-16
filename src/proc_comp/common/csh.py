@@ -1,6 +1,7 @@
 from proc_comp.common.cfgbuilder import Instruction
-from .csh_param import *
-from .types import *
+from .types.csh_param import *
+from .types.param import *
+from .types.operator import *
 
 
 class CSH_Command:
