@@ -1,6 +1,5 @@
 from proc_comp.common.types.csh_param import ParamRef
 from .param import ParamType, UInt32, Int64, String, Double64
-from .parser_param import ParserParam
 
 class Expression:
     def __repr__(self):

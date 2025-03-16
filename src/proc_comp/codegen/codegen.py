@@ -203,7 +203,7 @@ class CodeGen:
                 )
                 
             case ProcSetExp():
-                self._add_command(csh.ProcSet(csh.ParamRef(exp.name), exp.value), procedure)
+                self._add_command(csh.ProcSet(exp.param, exp.value), procedure)
 
             case ProcCaptureImages():
                 value = (
@@ -215,7 +215,7 @@ class CodeGen:
                     f"INTERVAL={exp.interval.value};\""
                 )
 
-                self._code_gen(ProcSetExp("capture_params", String(value)), procedure)
+                self._code_gen(ProcSetExp(ParamRef("capture_params"), String(value)), procedure)
 
             case RawCSH():
                 for cmd in exp.commands:
@@ -298,9 +298,13 @@ class CodeGen:
 
         ## Use itertools to iterate over all commands in main and procedures as if a single list
         for cmd in itertools.chain(self.main, itertools.chain.from_iterable(self.procedures.values())):
-            # print(cmd) TODO: make toggleable
+            before = str(cmd)
             cmd.update_params(param_map)
             cmd.update_slots(slot_map)
+            after = str(cmd)
+            if before != after:
+                # print(f'Updated: {before}\n ------> {after}')
+                pass
         
         
         #print("POST COLORING:")         TODO: make toggleable

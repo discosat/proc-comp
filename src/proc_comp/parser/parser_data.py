@@ -85,9 +85,10 @@ expression_map: dict[str, ExpressionMapItem] = {
     ),
     'set-param': ExpressionMapItem(
         [ ExpAttr('param', 'parameter')
-        , ExpAttr('value', '@param.type')
+        , ExpAttr('type', 'csh_param_type')
+        , ExpAttr('value', '@type')
         ],
-        lambda _, obj: ProcSetExp()
+        lambda _, obj: ProcSetExp(parse_param(obj.get('param')), type_map.get(obj.get('type'))(value=obj.get('value')))
     ),
     'wait-sec': ExpressionMapItem(
         [ ExpAttr('duration', 'uint') ],
@@ -132,8 +133,8 @@ expression_map: dict[str, ExpressionMapItem] = {
         , ExpAttr('value', 'uint', attributes={'min': 0, 'max': 1})
         ],
         lambda _, obj: SeqExp([
-                ProcSetExp(f"gpio_mode[{obj['pin']}]", UInt8(1)),
-                ProcSetExp(f"gpio_value[{obj['pin']}]", UInt8(obj['value']))
+                ProcSetExp(ParamRef("gpio_mode",obj['pin']), UInt8(1)),
+                ProcSetExp(ParamRef("gpio_value",obj['pin']), UInt8(obj['value']))
             ])
     )
 }

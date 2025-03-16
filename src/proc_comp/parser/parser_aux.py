@@ -36,8 +36,6 @@ def parse_param(obj:dict) -> ParamRef:
     else:
         raise Exception(f'Could not parse "{obj}" as parameter')
 
-
-
 def parse_conditional(obj:dict) -> tuple[ParamRef, ComparisonOp, ParamRef]:
     lhs = obj.get('left')
     op = obj.get('operator')

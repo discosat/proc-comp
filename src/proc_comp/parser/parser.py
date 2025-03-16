@@ -23,6 +23,15 @@ def parse(obj: dict) -> Expression:
     expr = expression_map.get(name)
     if expr is None:
         raise Exception(f'Unsupported expression block "{name}".')
+
+    missing_attributes = set()
+    for attr in  expr.attributes:
+        if attr.name not in obj and attr.required:
+            missing_attributes.add(attr.name)
+    
+    if len(missing_attributes) > 0:
+        raise Exception(f'Missing attributes in "{name}": {", ".join(missing_attributes)}')
+
     
     return expr.expression(parse, obj)
 
