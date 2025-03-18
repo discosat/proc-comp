@@ -1,13 +1,11 @@
 import itertools
 
-from proc_comp.common import types
-
-from ..common import csh
-from ..common.cfgbuilder import ControlFlowGraph
-from ..common.types.expression import *
-from ..common.types.operator import *
-from ..common.types.param import *
-from ..common.types.csh_param import *
+from proc_comp.common import types, csh
+from proc_comp.common.cfgbuilder import ControlFlowGraph
+from proc_comp.common.types.expression import *
+from proc_comp.common.types.operator import *
+from proc_comp.common.types.param import *
+from proc_comp.common.types.csh_param import *
 
 
 class CodeGen:
@@ -204,6 +202,12 @@ class CodeGen:
                 
             case ProcSetExp():
                 self._add_command(csh.ProcSet(exp.param, exp.value), procedure)
+            
+            case ProcBinopExp():
+                self._add_command(csh.ProcBinop(a=exp.left, b=exp.right, result=exp.result, op=exp.operator), procedure)
+            
+            case ProcUnopExp():
+                self._add_command(csh.ProcUnop(value=exp.value, result=exp.result, op=exp.operator), procedure)
 
             case ProcCaptureImages():
                 value = (
@@ -300,6 +304,9 @@ class CodeGen:
         for cmd in itertools.chain(self.main, itertools.chain.from_iterable(self.procedures.values())):
             before = str(cmd)
             cmd.update_params(param_map)
+            for attr_name,attr in vars(cmd).items():
+                if isinstance(attr, ParamGeneralRegister):
+                    raise Exception(f'Missing update of param "{attr_name}" in "{cmd}". Is it unused?')
             cmd.update_slots(slot_map)
             after = str(cmd)
             if before != after:

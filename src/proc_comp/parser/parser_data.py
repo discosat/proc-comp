@@ -52,10 +52,10 @@ types = {
         list(comparator_map.keys())
     ],
     'unop': [
-        'Increment', 'Decrement', 'Negation', 'Not', 'IdentLocal', 'IdentRemote'
+        list(unop_map.keys())
     ],
     'binop': [
-        'Add', 'Sub', 'Mul', 'Div', 'Mod', 'LShift', 'RShift', 'BitAnd', 'BitOr', 'BitXOr'
+        list(binop_map.keys())
     ]
 }
 
@@ -89,6 +89,24 @@ expression_map: dict[str, ExpressionMapItem] = {
         , ExpAttr('value', '@type')
         ],
         lambda _, obj: ProcSetExp(parse_param(obj.get('param')), type_map.get(obj.get('type'))(value=obj.get('value')))
+    ),
+    'binop': ExpressionMapItem(
+        [ ExpAttr('left', 'parameter')
+        , ExpAttr('operator', 'binop')
+        , ExpAttr('right', 'parameter')
+        , ExpAttr('result', 'parameter')
+        ],
+        lambda _, obj: ProcBinopExp(parse_param(obj.get('left')), parse_param(obj.get('right')), parse_param(obj.get('result')), binop_map.get(obj.get('operator'))()),
+        description='Do a binary operation on the "left" and "right" parameters. The result of the operation is stored in the "result" parameter.'
+    ),
+    'unop': ExpressionMapItem(
+        [ ExpAttr('value', 'parameter')
+        , ExpAttr('operator', 'binop')
+        , ExpAttr('result', 'parameter')
+        ],
+        lambda _, obj: ProcUnopExp(parse_param(obj.get('value')), parse_param(obj.get('result')), unop_map.get(obj.get('operator'))()),
+        description='Do a unary operation on the "value" parameter. The result of the operation is stored in the "result" parameter.'
+
     ),
     'wait-sec': ExpressionMapItem(
         [ ExpAttr('duration', 'uint') ],

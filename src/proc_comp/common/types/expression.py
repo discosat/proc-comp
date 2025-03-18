@@ -1,5 +1,6 @@
 from proc_comp.common.types.csh_param import ParamRef
-from .param import ParamType, UInt32, Int64, String, Double64
+from proc_comp.common.types.operator import OperandType
+from proc_comp.common.types.param import ParamType, UInt32, Int64, String, Double64
 
 class Expression:
     def __repr__(self):
@@ -102,6 +103,33 @@ class ProcSetExp(Expression):
     
     def __str__(self):
         return f"ProcSetExp({self.param}, {self.value})"
+
+class ProcBinopExp(Expression):
+    left: ParamRef
+    right: ParamRef
+    result: ParamRef
+    operator: OperandType
+
+    def __init__(self, left, right, result, operator):
+        self.left = left
+        self.right = right
+        self.result = result
+        self.operator = operator
+    
+    def __str__(self):
+        return f"ProcBinopExp({self.result} = {self.left} {self.operator} {self.right})"
+class ProcUnopExp(Expression):
+    value: ParamRef
+    result: ParamRef
+    operator: OperandType
+
+    def __init__(self, value, result, operator):
+        self.value = value
+        self.result = result
+        self.operator = operator
+    
+    def __str__(self):
+        return f"ProcUnopExp({self.result} = {self.operator} {self.value})"
 
 class ProcCaptureImages(Expression):
     """

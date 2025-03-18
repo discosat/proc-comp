@@ -26,6 +26,28 @@ comparator_map = {
     'Gte': GteOp
 }
 
+binop_map= {
+    'Add': AddOp, 
+    'Sub': SubOp, 
+    'Mul': MulOp, 
+    'Div': DivOp, 
+    'Mod': ModOp, 
+    'LShift': LshiftOp, 
+    'RShift': RshiftOp, 
+    'BitAnd': BitAndOp, 
+    'BitOr': BitOrOp, 
+    'BitXOr': BitXorOp,
+}
+
+unop_map= {
+    'Increment': IncrOp, 
+    'Decrement': DecrOp, 
+    'Negation': NegOp, 
+    'Not': NotOp, 
+    'IdentLocal': IdentLocalOp, 
+    'IdentRemote': IdentRemoteOp
+}
+
 def parse_param(obj:dict) -> ParamRef:
     if 'name' in obj:
         return ParamRef(obj.get('name'), obj.get('array_idx'))
