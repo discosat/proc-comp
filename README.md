@@ -24,13 +24,11 @@ Below, the steps done by the compiler is described. Cleanup still needed and fun
 ```
 ---From frontend--> General language/JSON
 ---parser--> intermediary representation/abstract syntax 
----codegen.procgen--> CSH command representation split into proc functions. A control flow graph is built alongside
+---codegen--> CSH command representation split into proc functions, and building a control flow graph
 ---cfg.calc_liveness--> Analyse the control flow graph for parameter liveness. Calculate a colored graph for reuse of general purpose parameters.
 ---codegen.assign_params--> Replace placeholder params with general purpose params found with coloring
-
-TODO: 
----codegen.assign_slots--> Analyse which slots are available and update the slot names correspondingly.
----codegen.codegen--> Generate actual CSH script. Use a csh_str() method from common/csh.py (not implemented yet)
+---codegen.assign_slots--> Analyse which slots are available and update the slot names correspondingly
+---codegen.output--> Generate and output list of resulting CSH script 
 ```
 
 ### Implementing additional translation blocks

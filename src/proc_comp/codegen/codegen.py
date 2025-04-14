@@ -75,7 +75,7 @@ class CodeGen:
         """
         body = []
         for x in exps:
-            self._code_gen(x, body)
+            self._code_gen_recursive(x, body)
         
         id = self._next_proc_id()
         self.procedures[id] = body
@@ -90,7 +90,7 @@ class CodeGen:
         for cmd in commands:
             self._add_command(cmd, procedure)
 
-    def _code_gen(self, exp: Expression, procedure: list[csh.CSH_Command]):
+    def _code_gen_recursive(self, exp: Expression, procedure: list[csh.CSH_Command]):
         """Recursive function to generate code from an expression tree.
         Instructions are added to the given procedure list, and the control flow graph is built accordingly, keeping track of how params are used by instructions. 
         
@@ -112,7 +112,7 @@ class CodeGen:
 
             case SeqExp():
                 for x in exp.exps:
-                    self._code_gen(x, procedure)
+                    self._code_gen_recursive(x, procedure)
             
             case RepeatExp():
                 body = []
@@ -143,7 +143,7 @@ class CodeGen:
                 # CFG Body
                 cfgbody = self.cfg.block_next("repeat_body")
 
-                self._code_gen(exp.exp, body)
+                self._code_gen_recursive(exp.exp, body)
 
                 # CFG Loop tail
                 cfgtail = self.cfg.block_next("repeat_tail")
@@ -174,7 +174,7 @@ class CodeGen:
                         id = self._sub_proc(then_or_else.exps)
                         self._add_command(csh.ProcCall(id), procedure)
                     else:
-                        self._code_gen(then_or_else, procedure)
+                        self._code_gen_recursive(then_or_else, procedure)
                     self.cfg.block_end()
                     return cfgblock
                 
@@ -219,7 +219,7 @@ class CodeGen:
                     f"INTERVAL={exp.interval.value};\""
                 )
 
-                self._code_gen(ProcSetExp(ParamRef("capture_params"), String(value)), procedure)
+                self._code_gen_recursive(ProcSetExp(ParamRef("capture_params"), String(value)), procedure)
 
             case RawCSH():
                 for cmd in exp.commands:
@@ -239,19 +239,9 @@ class CodeGen:
             list[str]: The generated code in the form of a list of strings
         """
         
-        main_prefix = [
-            csh.ProcNew(),
-        ]
-        
-        main_suffix = [
-            csh.ProcDel(10),
-            csh.ProcPush(10),
-            csh.ProcRun(10),
-        ]
-        
         self.cfg.block_start("main")
 
-        self._code_gen(exp, self.main)
+        self._code_gen_recursive(exp, self.main)
 
         self.cfg.block_end()
         
@@ -281,9 +271,7 @@ class CodeGen:
                 ref = csh.ParamRef(reg, i)
                 param_map[param] = ref
         
-
-        # TODO: Slot allocation
-
+        # Slot allocation
         MAIN_SLOT_ID = 10
         MIN_SLOT_ID = 11
         MAX_SLOT_ID = 255
@@ -300,6 +288,7 @@ class CodeGen:
             slot_map[k] = n
             self.procedures[n] = self.procedures.pop(k)
 
+        # Update all param and slot placeholders in commands with output from colouring/slot allocation
         ## Use itertools to iterate over all commands in main and procedures as if a single list
         for cmd in itertools.chain(self.main, itertools.chain.from_iterable(self.procedures.values())):
             before = str(cmd)
@@ -326,12 +315,8 @@ class CodeGen:
         #for x in self.main:
         #    print(f"\t{x}")
         
-        
-        
-        # TODO: From python objects to lines of code 
-        
 
-
+        # Generate and output list of resulting CSH script 
         REMOTE_NODE = 12
 
         instruction_list: list[csh.CSH_Command] = []
