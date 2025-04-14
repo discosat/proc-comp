@@ -6,6 +6,7 @@ import logging.config
 import json
 from proc_comp.parser import parser as codeParser
 from proc_comp.codegen import codegen
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +16,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", "-o", help="Output file", default="out.csh")
     parser.add_argument("--verbose", "-v", help="Enable verbose mode", action="store_true")
     parser.add_argument("--log-file", "-l", help="Set logging to file instead of stdout/stderr")
+    parser.add_argument("--yaml", "-y", help="Parse input as YAML instead of JSON", action="store_true")
 
     args = parser.parse_args()
 
@@ -34,9 +36,12 @@ if __name__ == "__main__":
     logger.debug("Output file: %s", args.output)
 
     with open(args.input, 'r') as f:
-        json_input = json.load(f)
+        if args.yaml:
+            input_stream = yaml.safe_load(f)
+        else:
+            input_stream = json.load(f)
     
-    ast = codeParser.parse(json_input)
+    ast = codeParser.parse(input_stream)
     logger.debug("Ast: %s", ast)
 
     csh_generator = codegen.CodeGen()
