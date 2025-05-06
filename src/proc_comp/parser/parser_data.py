@@ -92,7 +92,7 @@ expression_map: dict[str, ExpressionMapItem] = {
     ),
     'binop': ExpressionMapItem(
         [ ExpAttr('left', 'parameter')
-        , ExpAttr('operator', 'binop')
+        , ExpAttr('operator', 'binary_operator')
         , ExpAttr('right', 'parameter')
         , ExpAttr('result', 'parameter')
         ],
@@ -101,7 +101,7 @@ expression_map: dict[str, ExpressionMapItem] = {
     ),
     'unop': ExpressionMapItem(
         [ ExpAttr('value', 'parameter')
-        , ExpAttr('operator', 'binop')
+        , ExpAttr('operator', 'unary_operator')
         , ExpAttr('result', 'parameter')
         ],
         lambda _, obj: ProcUnopExp(parse_param(obj.get('value')), parse_param(obj.get('result')), unop_map.get(obj.get('operator'))()),
@@ -109,12 +109,12 @@ expression_map: dict[str, ExpressionMapItem] = {
 
     ),
     'wait-sec': ExpressionMapItem(
-        [ ExpAttr('duration', 'uint') ],
+        [ ExpAttr('duration', 'UInt32') ],
         lambda _,obj: WaitTimeExp(UInt32(obj['duration'])),
         description='Pause execution of the flight plan for a given duration, in seconds'
     ),
     'repeat-n': ExpressionMapItem(
-        [ ExpAttr('count', 'uint')
+        [ ExpAttr('count', 'UInt32')
         , ExpAttr('body', 'expression')
         ],
         lambda parse,obj: RepeatExp(UInt32(obj['count']), parse(obj['body'])),
@@ -128,12 +128,12 @@ expression_map: dict[str, ExpressionMapItem] = {
 
     # DISCO-2 specific
     'capture_image': ExpressionMapItem(
-        [ ExpAttr('cameraID', 'string')
-        , ExpAttr('cameraType', 'string')
-        , ExpAttr('exposure', 'uint', required=False)
-        , ExpAttr('iso', 'uint', required=False)
-        , ExpAttr('numOfImages', 'uint', 1, False)
-        , ExpAttr('interval', 'uint', 10, False)
+        [ ExpAttr('cameraID', 'String')
+        , ExpAttr('cameraType', 'String')
+        , ExpAttr('exposure', 'Int64', required=False)
+        , ExpAttr('iso', 'Double64', required=False)
+        , ExpAttr('numOfImages', 'Int64', 1, False)
+        , ExpAttr('interval', 'Int64', 10, False)
         ],
         lambda _,obj: ProcCaptureImages(
                     String(obj['cameraID']),
@@ -147,8 +147,8 @@ expression_map: dict[str, ExpressionMapItem] = {
 
     # Raspberry Pi test expressions
     'gpio-write': ExpressionMapItem(
-        [ ExpAttr('pin', 'uint', attributes={'min':0, 'max':31})
-        , ExpAttr('value', 'uint', attributes={'min': 0, 'max': 1})
+        [ ExpAttr('pin', 'UInt8', attributes={'min':0, 'max':31})
+        , ExpAttr('value', 'UInt8', attributes={'min': 0, 'max': 1})
         ],
         lambda _, obj: SeqExp([
                 ProcSetExp(ParamRef("gpio_mode",obj['pin']), UInt8(1)),
